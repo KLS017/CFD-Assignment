@@ -27,6 +27,6 @@ plt.xlabel("x")
 plt.ylabel("y")
 plt.tight_layout()
 plt.show()
-"Jaja het is gelukt"
+
 
 
