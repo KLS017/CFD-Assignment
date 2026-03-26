@@ -11,6 +11,9 @@ X, Y = np.meshgrid(x, y) # Cell-center coordinates associated with I(x, y)
 #inlet and outlet locations of Q1.4
 ymin_in, ymax_in = 0.875, 0.955
 ymin_out, ymax_out = 0.06, 0.14
+#alpha values
+alpha_liquid = 1e-1
+alpha_wall = 1e-8
 
 I = np.load("maze_geometry.npy")
 
@@ -33,6 +36,10 @@ I = np.load("maze_geometry.npy")
 # plt.show()
 
 c = np.zeros((Ny+2, Nx+2))
+alpha = np.zeros((Ny+2, Nx+2))
+
+#determine alphas for the walls
+alpha[1:-1, 1:-1] = alpha_liquid*(1-I) + alpha_wall * I
 
 
 
@@ -47,19 +54,25 @@ ipause = 0.01
 for n in range(nframes):
     
     for j in range(1, Ny + 1):
-        
+        for i in range(1, Nx + 1):
+            alpha_up    = 2 * alpha[j, i] * alpha[j+1, i] / (alpha[j, i] + alpha[j+1, i])
+            alpha_down  = 2 * alpha[j, i] * alpha[j-1, i] / (alpha[j, i] + alpha[j-1, i])
+            alpha_right = 2 * alpha[j, i] * alpha[j, i+1] / (alpha[j, i] + alpha[j, i+1])
+            alpha_left  = 2 * alpha[j, i] * alpha[j, i-1] / (alpha[j, i] + alpha[j, i-1])
+            
+
         yj = (j - 0.5) * dy
         if yj >= ymin_in and yj <= ymax_in:
             c[j, 0] = 1 - c[j, 1]
         else:
             c[j, 0] = c[j,1]
         if yj >= ymin_out and yj <= ymax_out:
-            c[j, Nx + 1] = 0
+            c[j, Nx + 1] = -c[j, Nx]
         else:
-            c[j, Nx + 1] = 0
+            c[j, Nx + 1] = c[j, Nx]
         c[0, :] = c[1, :]
         c[Ny + 1, :] = c[Ny, :]
-        
+
 
         
 
@@ -68,26 +81,26 @@ for n in range(nframes):
         # c[4,51] = c[5,51] =c[6,51] =c[7,51] =c[8,51] = 0
 
     
-    if n % 50 == 0:  
+    if n % 100 == 0:  
         print(c[1, 44])
         plt.clf()
         maze_walls = np.ma.masked_where(I == 0, I)
         plt.imshow(
-            c,
+            alpha,
             origin="lower",
             extent=[0.0, Lx, 0.0, Ly],
             cmap="viridis",
             aspect="equal",
         )
-        plt.imshow(
-            maze_walls,
-            origin="lower",
-            extent=[0.0, Lx, 0.0, Ly],
-            cmap="gray_r",
-            alpha=0.15,
-            interpolation="nearest",
-            aspect="equal",
-        )
+        # plt.imshow(
+        #     maze_walls,
+        #     origin="lower",
+        #     extent=[0.0, Lx, 0.0, Ly],
+        #     cmap="gray_r",
+        #     alpha=0.15,
+        #     interpolation="nearest",
+        #     aspect="equal",
+        # )
         plt.colorbar()
         plt.xlabel("x")
         plt.ylabel("y")
