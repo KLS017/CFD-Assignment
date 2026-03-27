@@ -6,7 +6,7 @@ Nx = Ny = 50
 dx = Lx / Nx
 dy = Ly / Ny
 nframes = 40000
-dt = 0.001
+dt = 0.001 #should be a dt calculation here with use of the alphas but wasn't sure how
 ipause = 0.1
 
 x = np.linspace(0.5 * dx, Lx - 0.5 * dx, Nx)
@@ -26,6 +26,7 @@ alpha = np.zeros((Ny+2, Nx+2))
 
 #determine alphas for the walls
 alpha[1:-1, 1:-1] = alpha_liquid*(1-I) + alpha_wall * I
+#determine alpha for the ghost cells
 alpha[0, :] = alpha[1, :]
 alpha[-1, :] = alpha[-2, :]
 alpha[:, 0] = alpha[:, 1]
