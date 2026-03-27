@@ -5,6 +5,9 @@ Lx = Ly = 1.0
 Nx = Ny = 50
 dx = Lx / Nx
 dy = Ly / Ny
+nframes = 40000
+dt = 0.0001
+ipause = 0.1
 
 x = np.linspace(0.5 * dx, Lx - 0.5 * dx, Nx)
 y = np.linspace(0.5 * dy, Ly - 0.5 * dy, Ny)
@@ -17,6 +20,16 @@ alpha_liquid = 1e-1
 alpha_wall = 1e-8
 
 I = np.load("maze_geometry.npy")
+
+c = np.zeros((Ny+2, Nx+2))
+alpha = np.zeros((Ny+2, Nx+2))
+
+#determine alphas for the walls
+alpha[1:-1, 1:-1] = alpha_liquid*(1-I) + alpha_wall * I
+alpha[0, :] = alpha[1, :]
+alpha[-1, :] = alpha[-2, :]
+alpha[:, 0] = alpha[:, 1]
+alpha[:, -1] = alpha[:, -2]
 
 
 # im = plt.imshow(
@@ -36,23 +49,8 @@ I = np.load("maze_geometry.npy")
 # plt.tight_layout()
 # plt.show()
 
-c = np.zeros((Ny+2, Nx+2))
-alpha = np.zeros((Ny+2, Nx+2))
-
-#determine alphas for the walls
-alpha[1:-1, 1:-1] = alpha_liquid*(1-I) + alpha_wall * I
-alpha[0, :] = alpha[1, :]
-alpha[-1, :] = alpha[-2, :]
-alpha[:, 0] = alpha[:, 1]
-alpha[:, -1] = alpha[:, -2]
 
 
-
-plt.figure()
-plt.ion()
-
-nframes = 40000
-dt = 0.0001
 #frame rate = nframes * ipause
 
 
@@ -67,8 +65,8 @@ for n in range(nframes):
             c[j, Nx + 1] = -c[j, Nx]
         else:
             c[j, Nx + 1] = c[j, Nx]
-        c[0, :] = c[1, :]
-        c[Ny + 1, :] = c[Ny, :]
+    c[0, :] = c[1, :]
+    c[Ny + 1, :] = c[Ny, :]
 
     
     c_new = c.copy()
@@ -99,7 +97,8 @@ for n in range(nframes):
         plt.clf()
         maze_walls = np.ma.masked_where(I == 0, I)
         plt.imshow(
-            c,
+            #no ghost cell plotting
+            c[1:-1, 1:-1],
             origin="lower",
             extent=[0.0, Lx, 0.0, Ly],
             cmap="viridis",
@@ -118,6 +117,6 @@ for n in range(nframes):
         plt.xlabel("x")
         plt.ylabel("y")
         plt.title("Transient concentration")
-        plt.pause(dt)
+        plt.pause(ipause)
 plt.ioff()    
 plt.show() 
