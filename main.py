@@ -6,7 +6,7 @@ Nx = Ny = 50
 dx = Lx / Nx
 dy = Ly / Ny
 nframes = 40000
-dt = 0.0001
+dt = 0.001
 ipause = 0.1
 
 x = np.linspace(0.5 * dx, Lx - 0.5 * dx, Nx)
@@ -93,7 +93,7 @@ for n in range(nframes):
         # c[4,51] = c[5,51] =c[6,51] =c[7,51] =c[8,51] = 0
 
     
-    if n % 2000 == 0:  
+    if n == 1/dt or n == 5/dt or n == 15/dt:  
         plt.clf()
         maze_walls = np.ma.masked_where(I == 0, I)
         plt.imshow(
