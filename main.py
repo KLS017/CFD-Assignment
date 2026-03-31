@@ -11,6 +11,7 @@ nframes = int(t / dt)
 ipause = 0.1
 tol = 1e-2
 max_iter = 200
+skip = 40
 
 
 x = np.linspace(0.5 * dx, Lx - 0.5 * dx, Nx)
@@ -62,7 +63,7 @@ alpha[:, -1] = alpha[:, -2]
 
 plt.ion()
 fig, ax = plt.subplots()
-skip = 20
+
 
 for n in range(nframes+1):
     c_new = c.copy()
