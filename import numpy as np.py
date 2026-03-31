@@ -1,0 +1,101 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import time
+
+# --- Grid setup ---
+Lx = Ly = 1.0
+Nx = Ny = 50
+dx = Lx / Nx
+dy = Ly / Ny
+
+dt = 0.01
+t_end = 0.01
+tol = 1e-3
+max_iter = 5000
+
+t_array = np.arange(0.0, t_end + dt, dt)
+
+# Load geometry (0 = fluid, 1 = solid)
+I = np.load("maze_geometry.npy")
+
+# --- Fields ---
+c = np.zeros((Ny + 2, Nx + 2))
+a = np.zeros((Ny + 2, Nx + 2))
+
+# --- Boundary conditions (Dirichlet + Neumann) ---
+def apply_bc(c):
+    # Dirichlet
+    c[44:49, 1] = 1
+    c[4:9, 50] = 0
+    # Neumann
+    c[Ny+1,:] = c[Ny,:]
+    c[0,:]    = c[1,:]
+    c[1:44,0] = c[1:44,1]
+    c[49:Ny+1,0] = c[49:Ny+1,1]
+    c[1:4,Nx+1] = c[1:4,Nx]
+    c[9:Ny+1,Nx+1] = c[9:Ny+1,Nx]
+
+apply_bc(c)
+
+# --- Diffusion coefficients ---
+a_fluid = 1e-1
+a_solid = 1e-8
+a[1:Ny+1,1:Nx+1] = a_fluid*(1-I) + a_solid*I
+
+# Harmonic means
+ax_plus  = (2*a[:,1:Nx+1]*a[:,2:Nx+2])/(a[:,1:Nx+1]+a[:,2:Nx+2])
+ax_minus = (2*a[:,0:Nx] * a[:,1:Nx+1])/(a[:,0:Nx] + a[:,1:Nx+1])
+ay_plus  = (2*a[1:Ny+1,:]*a[2:Ny+2,:])/(a[1:Ny+1,:]+a[2:Ny+2,:])
+ay_minus = (2*a[0:Ny,:] * a[1:Ny+1,:])/(a[0:Ny,:] + a[1:Ny+1,:])
+
+r = dt / dx**2
+
+# --- Time loop ---
+start = time.time()
+
+for n in range(len(t_array)-1):
+    tn1 = t_array[n+1]
+
+    c_new  = c.copy()
+
+    apply_bc(c_new)
+
+    # Gauss–Seidel
+    for it in range(1, max_iter+1):
+        c_old = c_new.copy()
+
+        for j in range(1, Ny+1):
+            for i in range(1, Nx+1):
+                if I[j-1, i-1] == 1:
+                    continue
+
+                a_px = ax_plus[j,   i-1]
+                a_mx = ax_minus[j,  i-1]
+                a_py = ay_plus[j-1, i]
+                a_my = ay_minus[j-1, i]
+
+                num = (c_old[j,i]
+                       + r*a_px*c_old[j,  i+1]
+                       + r*a_mx*c_new[j,  i-1]
+                       + r*a_py*c_old[j+1,i]
+                       + r*a_my*c_new[j-1,i])
+
+                den = 1 + r*(a_px + a_mx + a_py + a_my)
+
+                c_new[j,i] = num / den
+
+        apply_bc(c_new)
+
+        if np.linalg.norm(c_new - c_old) < tol:
+            break
+
+    c = c_new
+
+end = time.time()
+print("Simulation finished in", end-start, "seconds")
+
+# --- Final plot ---
+plt.imshow(c[1:Ny+1, 1:Nx+1], origin="lower", cmap="inferno")
+plt.colorbar()
+plt.title("Final concentration field")
+plt.show()
