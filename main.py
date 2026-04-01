@@ -12,17 +12,17 @@ ipause = 0.1
 tol = 1e-2
 max_iter = 200
 skip = 40
-
-
-x = np.linspace(0.5 * dx, Lx - 0.5 * dx, Nx)
-y = np.linspace(0.5 * dy, Ly - 0.5 * dy, Ny)
 # X, Y = np.meshgrid(x, y) # Cell-center coordinates associated with I(x, y)
 #inlet and outlet locations of Q1.4
 ymin_in, ymax_in = 0.86, 0.94
 ymin_out, ymax_out = 0.06, 0.14
 #alpha values
-alpha_liquid = 1e-1
+alpha_liquid = 1e-2
 alpha_wall = 1e-8
+
+
+x = np.linspace(0.5 * dx, Lx - 0.5 * dx, Nx)
+y = np.linspace(0.5 * dy, Ly - 0.5 * dy, Ny)
 
 I = np.load("maze_geometry.npy")
 
