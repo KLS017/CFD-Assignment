@@ -7,10 +7,10 @@ Lx = Ly = 1.0
 Nx = Ny = 50
 dx = Lx / Nx
 dy = Ly / Ny
-t = 50
+t = 15
 dt = 0.01 #should be a dt calculation here with use of the alphas but wasn't sure how
 nframes = int(t / dt)
-ipause = 0.1
+ipause = 0.01
 tol = 1e-6
 max_iter = 200
 skip = 40
@@ -19,7 +19,7 @@ skip = 40
 ymin_in, ymax_in = 0.86, 0.94
 ymin_out, ymax_out = 0.06, 0.14
 #alpha values
-alpha_liquid = 1e-2
+alpha_liquid = 1e-1
 alpha_wall = 1e-8
 
 
@@ -64,11 +64,15 @@ alpha[:, -1] = alpha[:, -2]
 
     
 
-plt.ion()
-fig, ax = plt.subplots()
+# plt.ion()
+# fig, ax = plt.subplots()
+
+snapshots = {}
+snapshot_times = [1, 5, 15, 50]
 
 start = time.time()
 for n in range(nframes+1):
+    tn1 = n * dt
     c_new = c.copy()
     c_new[0, :] = c[1, :]
     c_new[Ny + 1, :] = c[Ny, :]  
@@ -109,6 +113,7 @@ for n in range(nframes+1):
         iter_err = np.linalg.norm(c_new[1:Ny+1, 1:Nx+1]- c_old_iter[1:Ny+1, 1:Nx+1], ord=2)  #DELETE LATER: added [1:Ny+1, 1:Nx+1] to ensure ghost cells aren't counted, added ord=2 cause pedro does that as well
         if iter_err < tol:
             break
+
     if abs(tn1 % 0.5) < 1e-12:
         print(f"t={tn1:5.2f} | GS={it:3d} | Δ={np.max(np.abs(c_new - c)):.3e}")
 
@@ -126,7 +131,11 @@ for n in range(nframes+1):
 
 
     c = c_new
-    
+
+    for T in snapshot_times:
+        if T not in snapshots and tn1 >= T:
+            snapshots[T] = c.copy()
+            print(f"Snapshot saved at iteration n = {n}, t = {tn1}")
     # if n % skip == 0:
     #     c_copy = c.copy()
     #     ax.clear()
@@ -164,14 +173,47 @@ for n in range(nframes+1):
     #     # c[4,51] = c[5,51] =c[6,51] =c[7,51] =c[8,51] = 0
 
     
-    if n == 1/dt or n == 5/dt or n == 15/dt or n == 50/dt: 
-        plt.ion()
-        c_copycat = c.copy()
-        plt.clf()
+#     if n == 1/dt or n == 5/dt or n == 15/dt or n == 50/dt: 
+#         plt.ion()
+#         c_copycat = c.copy()
+#         plt.clf()
+#         maze_walls = np.ma.masked_where(I == 0, I)
+#         plt.imshow(
+#             #no ghost cell plotting
+#             c_copycat[1:-1, 1:-1],
+#             origin="lower",
+#             extent=[0.0, Lx, 0.0, Ly],
+#             cmap="viridis",
+#         )
+#         plt.imshow(
+#             maze_walls,
+#             origin="lower",
+#             extent=[0.0, Lx, 0.0, Ly],
+#             cmap="gray_r",
+#             alpha=0.15,
+#             interpolation="nearest",
+#         )
+#         # plt.colorbar()
+#         plt.xlabel("x")
+#         plt.ylabel("y")
+#         plt.title(f"Transient concentration at T = {n*dt:.2f}")
+#         # plt.pause(ipause)
+#         plt.ioff()    
+#         plt.show() 
+# plt.ioff()
+# plt.close(fig)
+
+end = time.time()
+print('Implicit run finished.')
+print(f"Simulation time: {end - start:.2f} seconds")
+
+for T in snapshot_times:
+    if T in snapshots:
+        plt.figure()
         maze_walls = np.ma.masked_where(I == 0, I)
+
         plt.imshow(
-            #no ghost cell plotting
-            c_copycat[1:-1, 1:-1],
+            snapshots[T][1:-1, 1:-1],
             origin="lower",
             extent=[0.0, Lx, 0.0, Ly],
             cmap="viridis",
@@ -184,20 +226,13 @@ for n in range(nframes+1):
             alpha=0.15,
             interpolation="nearest",
         )
-        # plt.colorbar()
+
         plt.xlabel("x")
         plt.ylabel("y")
-        plt.title(f"Transient concentration at T = {n*dt:.2f}")
-        # plt.pause(ipause)
-        plt.ioff()    
-        plt.show() 
-plt.ioff()
-plt.close(fig)
-
-end = time.time()
-print('Implicit run finished.')
-print(f"Simulation time: {end - start:.2f} seconds")
-
+        plt.title(f"Transient concentration at t = {T:.2f}")
+        plt.colorbar()
+        plt.tight_layout()
+        plt.show()
 
 for j in range(1, Ny - 1):
     for i in range(1, Nx - 1):
@@ -228,7 +263,7 @@ plt.ylabel("y")
 plt.show()
 
 plt.figure(figsize=(6,5))
-plt.imshow(c[1:Nx+1, 1:Ny+1].T, origin="lower", cmap="inferno")
+plt.imshow(c[1:Nx+1, 1:Ny+1], origin="lower", cmap="inferno")
 plt.colorbar(label="c(x,y)")
 plt.title("Final concentration field")
 plt.xlabel("x")
