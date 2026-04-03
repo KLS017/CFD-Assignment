@@ -23,6 +23,7 @@ alpha_wall = 1e-8
 
 x = np.linspace(0.5 * dx, Lx - 0.5 * dx, Nx)
 y = np.linspace(0.5 * dy, Ly - 0.5 * dy, Ny)
+diagnostic_quantity = np.zeros((Ny, Nx))
 
 I = np.load("maze_geometry.npy")
 
@@ -121,32 +122,33 @@ for n in range(nframes+1):
 
 
     c = c_new
+    
+    # if n % skip == 0:
+    #     c_copy = c.copy()
+    #     ax.clear()
+    #     maze_walls = np.ma.masked_where(I == 0, I)
 
-    if n % skip == 0:
-        c_copy = c.copy()
-        ax.clear()
-        maze_walls = np.ma.masked_where(I == 0, I)
-
-        ax.imshow(
-            c_copy[1:-1, 1:-1],
-            origin="lower",
-            extent=[0.0, Lx, 0.0, Ly],
-            cmap="viridis",
-            aspect="equal",
-        )
-        ax.imshow(
-            maze_walls,
-            origin="lower",
-            extent=[0.0, Lx, 0.0, Ly],
-            cmap="gray_r",
-            alpha=0.15,
-            interpolation="nearest",
-            aspect="equal",
-        )
-        ax.set_xlabel("x")
-        ax.set_ylabel("y")
-        ax.set_title(f"Transient concentration, t = {n*dt:.2f}")
-        plt.pause(0.01)
+    #     ax.imshow(
+    #         c_copy[1:-1, 1:-1],
+    #         origin="lower",
+    #         extent=[0.0, Lx, 0.0, Ly],
+    #         cmap="viridis",
+    #         aspect="equal",
+    #     )
+    #     ax.imshow(
+    #         maze_walls,
+    #         origin="lower",
+    #         extent=[0.0, Lx, 0.0, Ly],
+    #         cmap="gray_r",
+    #         alpha=0.15,
+    #         interpolation="nearest",
+    #         aspect="equal",
+    #     )
+    #     ax.set_xlabel("x")
+    #     ax.set_ylabel("y")
+    #     ax.set_title(f"Transient concentration, t = {n*dt:.2f}")
+    #     plt.pause(0.01)
+        
 
     # if n%50 == 0:
     #     print(n)
@@ -158,30 +160,62 @@ for n in range(nframes+1):
     #     # c[4,51] = c[5,51] =c[6,51] =c[7,51] =c[8,51] = 0
 
     
-    # if n == 1/dt or n == 5/dt or n == 15/dt: 
-    #     plt.ion()
-    #     c_copycat = c.copy()
-    #     plt.clf()
-    #     maze_walls = np.ma.masked_where(I == 0, I)
-    #     plt.imshow(
-    #         #no ghost cell plotting
-    #         c_copycat[1:-1, 1:-1],
-    #         origin="lower",
-    #         extent=[0.0, Lx, 0.0, Ly],
-    #         cmap="viridis",
-    #     )
-    #     plt.imshow(
-    #         maze_walls,
-    #         origin="lower",
-    #         extent=[0.0, Lx, 0.0, Ly],
-    #         cmap="gray_r",
-    #         alpha=0.15,
-    #         interpolation="nearest",
-    #     )
-    #     # plt.colorbar()
-    #     plt.xlabel("x")
-    #     plt.ylabel("y")
-    #     plt.title("Transient concentration")
-    #     # plt.pause(ipause)
-    #     plt.ioff()    
-    #     plt.show() 
+    if n == 1/dt or n == 5/dt or n == 15/dt or n == 50/dt: 
+        plt.ion()
+        c_copycat = c.copy()
+        plt.clf()
+        maze_walls = np.ma.masked_where(I == 0, I)
+        plt.imshow(
+            #no ghost cell plotting
+            c_copycat[1:-1, 1:-1],
+            origin="lower",
+            extent=[0.0, Lx, 0.0, Ly],
+            cmap="viridis",
+        )
+        plt.imshow(
+            maze_walls,
+            origin="lower",
+            extent=[0.0, Lx, 0.0, Ly],
+            cmap="gray_r",
+            alpha=0.15,
+            interpolation="nearest",
+        )
+        # plt.colorbar()
+        plt.xlabel("x")
+        plt.ylabel("y")
+        plt.title(f"Transient concentration at T = {n*dt:.2f}")
+        # plt.pause(ipause)
+        plt.ioff()    
+        plt.show() 
+plt.ioff()
+plt.close(fig)
+
+
+for j in range(1, Ny - 1):
+    for i in range(1, Nx - 1):
+        if (
+        I[j, i] == 0
+        and I[j, i + 1] == 0
+        and I[j, i - 1] == 0
+        and I[j + 1, i] == 0
+        and I[j - 1, i] == 0
+        ):
+            dc_dx = (c[j+1, i+2] - c[j+1, i]) / (2*dx)
+            dc_dy = (c[j+2, i+1] - c[j, i+1]) / (2*dy)
+            diagnostic_quantity[j, i] = alpha_liquid * (np.sqrt(dc_dx**2 + dc_dy**2))
+        else:
+            diagnostic_quantity[j, i] = 0.0 
+threshold = np.percentile(diagnostic_quantity, 90)
+solution_mask = diagnostic_quantity > threshold
+masked_solution = np.ma.masked_where(~solution_mask, diagnostic_quantity)
+plt.figure()
+maze_walls = np.ma.masked_where(I == 0, I)
+plt.imshow(diagnostic_quantity, origin="lower", extent=[0.0, Lx, 0.0, Ly], cmap="inferno",
+aspect="equal", vmin = 0, vmax = np.percentile(diagnostic_quantity, 95))
+plt.imshow(maze_walls, origin="lower", extent=[0.0, Lx, 0.0, Ly], cmap="gray_r",
+alpha=0.05, interpolation="nearest", aspect="equal")
+plt.colorbar()
+plt.xlabel("x")
+plt.ylabel("y")
+plt.show()
+    
