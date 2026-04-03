@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+import time
+
 Lx = Ly = 1.0
 Nx = Ny = 50
 dx = Lx / Nx
@@ -9,7 +11,7 @@ t = 50
 dt = 0.01 #should be a dt calculation here with use of the alphas but wasn't sure how
 nframes = int(t / dt)
 ipause = 0.1
-tol = 1e-2
+tol = 1e-6
 max_iter = 200
 skip = 40
 # X, Y = np.meshgrid(x, y) # Cell-center coordinates associated with I(x, y)
@@ -65,7 +67,7 @@ alpha[:, -1] = alpha[:, -2]
 plt.ion()
 fig, ax = plt.subplots()
 
-
+start = time.time()
 for n in range(nframes+1):
     c_new = c.copy()
     c_new[0, :] = c[1, :]
@@ -104,9 +106,11 @@ for n in range(nframes+1):
                     + Au * c_old_iter[j+1, i]
                 ) / den
 
-        err = np.linalg.norm(c_new - c_old_iter)
-        if err < tol:
+        iter_err = np.linalg.norm(c_new[1:Ny+1, 1:Nx+1]- c_old_iter[1:Ny+1, 1:Nx+1], ord=2)  #DELETE LATER: added [1:Ny+1, 1:Nx+1] to ensure ghost cells aren't counted, added ord=2 cause pedro does that as well
+        if iter_err < tol:
             break
+    if abs(tn1 % 0.5) < 1e-12:
+        print(f"t={tn1:5.2f} | GS={it:3d} | Δ={np.max(np.abs(c_new - c)):.3e}")
 
             # alpha_up    = 2 * alpha[j, i] * alpha[j+1, i] / (alpha[j, i] + alpha[j+1, i])
             # alpha_down  = 2 * alpha[j, i] * alpha[j-1, i] / (alpha[j, i] + alpha[j-1, i])
@@ -190,6 +194,10 @@ for n in range(nframes+1):
 plt.ioff()
 plt.close(fig)
 
+end = time.time()
+print('Implicit run finished.')
+print(f"Simulation time: {end - start:.2f} seconds")
+
 
 for j in range(1, Ny - 1):
     for i in range(1, Nx - 1):
@@ -218,4 +226,14 @@ plt.colorbar()
 plt.xlabel("x")
 plt.ylabel("y")
 plt.show()
+
+plt.figure(figsize=(6,5))
+plt.imshow(c[1:Nx+1, 1:Ny+1].T, origin="lower", cmap="inferno")
+plt.colorbar(label="c(x,y)")
+plt.title("Final concentration field")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.tight_layout()
+plt.show()
+
     
