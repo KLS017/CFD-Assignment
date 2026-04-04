@@ -8,7 +8,7 @@ Nx = Ny = 50
 dx = Lx / Nx
 dy = Ly / Ny
 t = 15
-dt = 0.01 #should be a dt calculation here with use of the alphas but wasn't sure how
+dt = 0.01 
 nframes = int(t / dt)
 ipause = 0.01
 tol = 1e-6
@@ -110,7 +110,7 @@ for n in range(nframes+1):
                     + Au * c_old_iter[j+1, i]
                 ) / den
 
-        iter_err = np.linalg.norm(c_new[1:Ny+1, 1:Nx+1]- c_old_iter[1:Ny+1, 1:Nx+1], ord=2)  #DELETE LATER: added [1:Ny+1, 1:Nx+1] to ensure ghost cells aren't counted, added ord=2 cause pedro does that as well
+        iter_err = np.linalg.norm(c_new[1:Ny+1, 1:Nx+1]- c_old_iter[1:Ny+1, 1:Nx+1], ord=2)  
         if iter_err < tol:
             break
 
