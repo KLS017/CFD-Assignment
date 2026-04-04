@@ -88,7 +88,7 @@ for istep in range(nstep):
 
     # Print nstep and time
     if istep % 500 == 0:
-        print(f't={time_step:5.2f} | Iteration={istep:3d}')
+        print(f'Time ={time_step:5.2f} seconds | Iteration={istep:3d}')
     
 
     # Steady State
@@ -97,9 +97,9 @@ for istep in range(nstep):
         img.set_data(T[1:-1, 1:-1])
         plt.pause(0.001)
         print('Steady state reached')
-        print(f'iteration: {istep}')
-        print(f'time: {time_step:.2f}')
-        print(f'delta:{delta:.3e}')
+        print(f'Iteration: {istep}')
+        print(f'Time: {time_step:.2f} seconds')
+        print(f'Delta:{delta:.3e}')
         T = T_new.copy()
         break
 
