@@ -308,7 +308,7 @@ def solver_vector(N, animate = True):
         plt.show()
     return y, x, centerline_y, centerline_x
 
-N_values = [80]
+N_values = [20, 40, 60, 80]
 
 def run_solver_set(solver_func, N_values):
     results = {}
