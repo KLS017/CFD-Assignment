@@ -13,7 +13,7 @@ def solver_loop(N, animate = True):
     T_right = 0.0
 
     nstep = 50000
-    dt = 0.001
+    dt = 0.02
 
     x = np.linspace(0.5 * dx, Lx- 0.5 * dx, Nx)
     y = np.linspace(0.5 * dy, Ly- 0.5 * dy, Ny)
@@ -164,7 +164,7 @@ def solver_vector(N, animate = True):
     T_right = 0.0
 
     nstep = 500000
-    dt = 0.0001
+    dt = 0.02
 
     x = np.linspace(0.5 * dx, Lx- 0.5 * dx, Nx)
     y = np.linspace(0.5 * dy, Ly- 0.5 * dy, Ny)
