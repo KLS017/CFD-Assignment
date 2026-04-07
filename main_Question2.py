@@ -13,7 +13,7 @@ T_left = 1.0
 T_right = 0.0
 
 nstep = 50000
-dt = 0.005
+dt = 0.024
 
 x = np.linspace(0.5 * dx, Lx- 0.5 * dx, Nx)
 y = np.linspace(0.5 * dy, Ly- 0.5 * dy, Ny)
