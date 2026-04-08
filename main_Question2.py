@@ -168,8 +168,14 @@ def solver_vector(N, animate = True):
     T_left = 1.0
     T_right = 0.0
 
-    nstep = 500000
-    dt = 0.02
+    nstep = 20000
+    if N < 50:
+        dt = 0.02
+    elif N < 70:
+        dt = 0.010
+    else: 
+        dt = 0.0075
+
 
     x = np.linspace(0.5 * dx, Lx- 0.5 * dx, Nx)
     y = np.linspace(0.5 * dy, Ly- 0.5 * dy, Ny)
@@ -328,7 +334,7 @@ results_loop = run_solver_set(solver_loop, N_values)
 plt.figure()
 for N in N_values:
     plt.plot(results_loop[N]["ygrid"], results_loop[N]["centerline_x"], label=f"loop, N={N}")
-    #plt.plot(results_vec[N]["ygrid"], results_vec[N]["centerline_x"], "--", label=f"vectorized, N={N}")
+ #   plt.plot(results_vec[N]["ygrid"], results_vec[N]["centerline_x"], "--", label=f"vectorized, N={N}")
 plt.xlabel("y")
 plt.ylabel("T")
 plt.title("Centerline profile at x = 0.5")
@@ -339,7 +345,7 @@ plt.show()
 plt.figure()
 for N in N_values:
     plt.plot(results_loop[N]["xgrid"], results_loop[N]["centerline_y"], label=f"loop, N={N}")
-    #plt.plot(results_vec[N]["xgrid"], results_vec[N]["centerline_y"], "--", label=f"vectorized, N={N}")
+  #  plt.plot(results_vec[N]["xgrid"], results_vec[N]["centerline_y"], "--", label=f"vectorized, N={N}")
 plt.xlabel("x")
 plt.ylabel("T")
 plt.title("Centerline profile at y = 0.5")
